@@ -33,13 +33,13 @@ jobs:
     - name: Run tests
       id: run-tests
       run: >
-        uv run pytest \
-          --junitxml=pytest.xml \
-          --cov-report=term-missing:skip-covered \
-          --cov-report=xml:coverage.xml \
-          --cov=src tests \
-          --log-level=DEBUG \
-          --verbose
+        uv run pytest
+        --junitxml=pytest.xml
+        --cov-report=term-missing:skip-covered
+        --cov-report=xml:coverage.xml
+        --cov=src tests
+        --log-level=DEBUG
+        --verbose
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
       uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
