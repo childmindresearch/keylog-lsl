@@ -1,13 +1,6 @@
-# /// script
-# dependencies = [
-#     "pynput",
-#     "pylsl",
-# ]
-# ///
-
 """Publish keyboard markers to LSL.
 
-This script captures global key presses and releases and writes them to one
+This module captures global key presses and releases and writes them to one
 LSL marker stream named ``KeyboardEvents``.
 
 Each marker is JSON with:
@@ -18,22 +11,16 @@ Each marker is JSON with:
 LSL sample timestamps are set with ``pylsl.local_clock()`` at callback time.
 This gives an ``(lsl_time, time_unix)`` pair for each event, which is useful
 for post-hoc alignment with non-LSL logs such as browser UI timestamps.
-
-Run with:
-        uv run key_lsl.py
-
-Press ``ESC`` to stop.
 """
 
 import json
 import time
-from typing import Any, Optional
+from typing import Optional
 
 from pylsl import StreamInfo, StreamOutlet, local_clock
-from pynput import keyboard
 
 
-def _get_key_string(key: Any) -> str:
+def _get_key_string(key: object) -> str:
     """Return a normalized key name.
 
     Args:
@@ -53,7 +40,7 @@ def _get_key_string(key: Any) -> str:
     return str(key)
 
 
-def _make_marker(event: str, key: Any) -> str:
+def _make_marker(event: str, key: object) -> str:
     """Build a JSON marker payload.
 
     Args:
@@ -75,6 +62,8 @@ def main() -> None:
     The stream uses one irregular-rate string channel with type ``Markers``.
     Stream ``desc`` metadata documents the channel and JSON payload fields.
     """
+    from pynput import keyboard
+
     info = StreamInfo(
         name="KeyboardEvents",
         type="Markers",
@@ -106,16 +95,8 @@ def main() -> None:
     print('Marker payload: JSON with fields "event", "key", "time_unix"')
     print("Listening for keystrokes... (Press ESC to stop)")
 
-    def on_press(key: Any) -> Optional[bool]:
-        """Push a press marker and stop the listener on Escape.
-
-        Args:
-            key: The key that was pressed, as provided by ``pynput``.
-
-        Returns:
-            ``False`` to stop the keyboard listener when Escape is pressed;
-            otherwise ``None`` to keep listening.
-        """
+    def on_press(key: object) -> Optional[bool]:
+        """Push a press marker and stop the listener on Escape."""
         lsl_time = local_clock()
         marker = _make_marker("press", key)
         outlet.push_sample([marker], lsl_time)
@@ -126,12 +107,8 @@ def main() -> None:
             return False
         return None
 
-    def on_release(key: Any) -> None:
-        """Push a release marker for the given key.
-
-        Args:
-            key: The key that was released, as provided by ``pynput``.
-        """
+    def on_release(key: object) -> None:
+        """Push a release marker for the given key."""
         lsl_time = local_clock()
         marker = _make_marker("release", key)
         outlet.push_sample([marker], lsl_time)
@@ -141,5 +118,5 @@ def main() -> None:
         listener.join()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
