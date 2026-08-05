@@ -14,7 +14,6 @@ for post-hoc alignment with non-LSL logs such as browser UI timestamps.
 """
 
 from pylsl import StreamOutlet, local_clock
-from pynput import keyboard
 
 from keylog_lsl import utils
 
@@ -25,6 +24,8 @@ def main() -> None:
     The stream uses one irregular-rate string channel with type ``Markers``.
     Stream ``desc`` metadata documents the channel and JSON payload fields.
     """
+    from pynput import keyboard
+
     info = utils.build_stream_info()
 
     outlet = StreamOutlet(info)

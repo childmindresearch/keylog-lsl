@@ -1,9 +1,10 @@
 """Tests for the LSL keyboard event publisher."""
 
 import json
+import sys
 from collections.abc import Callable
 from importlib.metadata import entry_points
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from typing import Self
 from unittest.mock import MagicMock
 
@@ -158,7 +159,9 @@ def test_main_publishes_press_and_release(
     press_results: list[bool | None] = []
 
     fake_keyboard = _build_fake_keyboard(letter_key, escape_key, press_results)
-    monkeypatch.setattr(key_lsl, "keyboard", fake_keyboard)
+    pynput = ModuleType("pynput")
+    pynput.keyboard = fake_keyboard  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "pynput", pynput)
 
     stream_info = MagicMock()
     build_stream_info = MagicMock(return_value=stream_info)
