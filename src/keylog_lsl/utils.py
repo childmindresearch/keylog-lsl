@@ -10,8 +10,8 @@ def get_key_string(key: object) -> str:
     """Return a normalized string representation of a pynput key event.
 
     In ``pynput``, keystrokes generate different object types based on the key pressed.
-        Standard character keys generate ``keyboard.KeyCode`` objects which utilize a 
-        ``char`` attribute. Special or modifier keys generate ``keyboard.Key`` Enum 
+        Standard character keys generate ``keyboard.KeyCode`` objects which utilize a
+        ``char`` attribute. Special or modifier keys generate ``keyboard.Key`` Enum
         objects which utilize a ``name`` attribute. This function normalizes both into a
         clean string.
 
