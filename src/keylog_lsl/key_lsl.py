@@ -13,18 +13,33 @@ This gives an ``(lsl_time, time_unix)`` pair for each event, which is useful
 for post-hoc alignment with non-LSL logs such as browser UI timestamps.
 """
 
-from pylsl import StreamOutlet, local_clock
+from pylsl import StreamOutlet
 
 from keylog_lsl import utils
 
 
 def main() -> None:
-    """Create the marker outlet and stream events until ``ESC``.
+    """Create an LSL outlet and listen for keyboard events until ``ESC``.
 
-    The stream uses one irregular-rate string channel with type ``Markers``.
-    Stream ``desc`` metadata documents the channel and JSON payload fields.
+    The listener invokes local callbacks for each key press and release. Returning
+    False from the press callback stops the listener when ``ESC`` is pressed.
     """
     from pynput import keyboard
+
+    outlet: StreamOutlet
+
+    def on_press(key: object) -> bool | None:
+        """Publish each key press received from the listener and stop it on Escape."""
+        utils.push_marker(outlet, "press", key)
+
+        if key == keyboard.Key.esc:
+            print("Stopping stream...")
+            return False
+        return None
+
+    def on_release(key: object) -> None:
+        """Publish each key release received from the listener."""
+        utils.push_marker(outlet, "release", key)
 
     info = utils.build_stream_info()
 
@@ -34,25 +49,6 @@ def main() -> None:
     print("Broadcasting on LSL stream: 'KeyboardEvents'")
     print('Marker payload: JSON with fields "event", "key", "time_unix"')
     print("Listening for keystrokes... (Press ESC to stop)")
-
-    def on_press(key: object) -> bool | None:
-        """Push a press marker and stop the listener on Escape."""
-        lsl_time = local_clock()
-        marker = utils.make_marker("press", key)
-        outlet.push_sample([marker], lsl_time)
-        print(f"Pushed to LSL: {marker}")
-
-        if key == keyboard.Key.esc:
-            print("Stopping stream...")
-            return False
-        return None
-
-    def on_release(key: object) -> None:
-        """Push a release marker for the given key."""
-        lsl_time = local_clock()
-        marker = utils.make_marker("release", key)
-        outlet.push_sample([marker], lsl_time)
-        print(f"Pushed to LSL: {marker}")
 
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()

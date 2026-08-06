@@ -3,19 +3,33 @@
 import json
 import time
 
-from pylsl import StreamInfo
+from pylsl import StreamInfo, StreamOutlet, local_clock
 
 
 def get_key_string(key: object) -> str:
-    """Return a normalized key name.
+    """Return a normalized string representation of a pynput key event.
+
+    In ``pynput``, keystrokes generate different object types based on the key pressed.
+        Standard character keys generate ``keyboard.KeyCode`` objects which utilize a 
+        ``char`` attribute. Special or modifier keys generate ``keyboard.Key`` Enum 
+        objects which utilize a ``name`` attribute. This function normalizes both into a
+        clean string.
 
     Args:
-        key: The key object provided by ``pynput``. This is a
-            ``keyboard.KeyCode`` for character keys or a ``keyboard.Key`` for
-            special keys (for example, ``SHIFT``).
+        key: The key object provided by the ``pynput`` listener. This is typically a
+            ``keyboard.KeyCode`` for typable keys (e.g., 'a', '5') or a
+            ``keyboard.Key`` for special keys (e.g., ``Key.shift``, ``Key.space``).
 
     Returns:
-        Character keys as-is and named keys without the ``Key.`` prefix.
+        str: A clean string representation of the keystroke.
+            - For character keys, returns the literal character via the ``char``
+            attribute (e.g., returning "a" instead of the default "'a'").
+            - For special keys, returns the key name via the ``name`` attribute
+            (e.g., returning "shift" instead of the default "Key.shift").
+            - If a key object exposes both attributes, ``char`` takes precedence to
+            preserve the typed character exactly.
+            - If neither attribute exists (e.g., unmapped hardware or media keys),
+            it falls back to the default ``str(key)`` representation.
     """
     char = getattr(key, "char", None)
     if char is not None:
@@ -73,3 +87,17 @@ def build_stream_info() -> StreamInfo:
     )
 
     return info
+
+
+def push_marker(outlet: StreamOutlet, event: str, key: object) -> None:
+    """Publish one keyboard event marker to the active LSL outlet.
+
+    Args:
+        outlet: The LSL outlet receiving event markers.
+        event: The event type, either ``"press"`` or ``"release"``.
+        key: The key object provided by ``pynput``.
+    """
+    lsl_time = local_clock()
+    marker = make_marker(event, key)
+    outlet.push_sample([marker], lsl_time)
+    print(f"Pushed to LSL: {marker}")  # will remove in the future

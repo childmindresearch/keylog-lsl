@@ -169,7 +169,7 @@ def test_main_publishes_press_and_release(
     outlet_factory = MagicMock(return_value=outlet)
     monkeypatch.setattr(utils, "build_stream_info", build_stream_info)
     monkeypatch.setattr(key_lsl, "StreamOutlet", outlet_factory)
-    monkeypatch.setattr(key_lsl, "local_clock", MagicMock(side_effect=[1.0, 2.0, 3.0]))
+    monkeypatch.setattr(utils, "local_clock", MagicMock(side_effect=[1.0, 2.0, 3.0]))
     monkeypatch.setattr(utils.time, "time", lambda: 100.0)
 
     key_lsl.main()
