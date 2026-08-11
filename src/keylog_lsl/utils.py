@@ -48,7 +48,9 @@ def make_marker(event: str, key: object) -> str:
         key: The key object provided by ``pynput``.
 
     Returns:
-        JSON string with ``event``, ``key``, and ``time_unix`` fields.
+        JSON string with ``event``, ``key``, and ``time_unix`` fields. The
+        ``time_unix`` value is Unix epoch time in UTC seconds and can be
+        converted with ``datetime.fromtimestamp``.
     """
     return json.dumps(
         {"event": event, "key": get_key_string(key), "time_unix": time.time()},
@@ -74,17 +76,19 @@ def build_stream_info() -> StreamInfo:
     desc = info.desc()
     desc.append_child_value("manufacturer", "pynput")
     channel = desc.append_child("channels").append_child("channel")
-    channel.append_child_value("label", "KeyboardEvent")
-    channel.append_child_value("type", "Marker")
+    for name, value in {"label": "KeyboardEvent", "type": "Marker"}.items():
+        channel.append_child_value(name, value)
+
     payload = desc.append_child("payload")
-    payload.append_child_value("encoding", "json")
-    payload.append_child_value("fields", "event,key,time_unix")
-    payload.append_child_value("event_values", "press,release")
-    payload.append_child_value(
-        "time_unix",
-        "Wall-clock Unix epoch seconds at the event, for post-hoc alignment "
-        "with non-LSL data sources.",
-    )
+    payload_fields = {
+        "encoding": "json",
+        "fields": "event,key,time_unix",
+        "event_values": "press,release",
+        "time_unix": "Wall-clock Unix epoch time in UTC seconds at the event, "
+        "for post-hoc alignment with non-LSL data sources.",
+    }
+    for name, value in payload_fields.items():
+        payload.append_child_value(name, value)
 
     return info
 
@@ -96,6 +100,10 @@ def push_marker(outlet: StreamOutlet, event: str, key: object) -> None:
         outlet: The LSL outlet receiving event markers.
         event: The event type, either ``"press"`` or ``"release"``.
         key: The key object provided by ``pynput``.
+
+    Notes:
+        The outlet receives a one-element list because the stream has one
+        channel. The marker timestamp is LSL local-clock time, not Unix time.
     """
     lsl_time = local_clock()
     marker = make_marker(event, key)

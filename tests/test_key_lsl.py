@@ -6,7 +6,6 @@ from collections.abc import Callable
 from importlib.metadata import entry_points
 from types import ModuleType, SimpleNamespace
 from typing import Self
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -44,12 +43,29 @@ class _FakeStreamInfo:
 
 def _patch_stream_info_factory(
     monkeypatch: pytest.MonkeyPatch,
-) -> tuple[_FakeStreamInfo, MagicMock]:
+) -> tuple[_FakeStreamInfo, list[dict[str, object]]]:
     """Replace ``utils.StreamInfo`` with a controllable factory."""
     fake_info = _FakeStreamInfo()
-    stream_info_factory = MagicMock(return_value=fake_info)
+    stream_info_calls: list[dict[str, object]] = []
+
+    def stream_info_factory(**kwargs: object) -> _FakeStreamInfo:
+        """Record constructor arguments and return a controlled stream."""
+        stream_info_calls.append(kwargs)
+        return fake_info
+
     monkeypatch.setattr(utils, "StreamInfo", stream_info_factory)
-    return fake_info, stream_info_factory
+    return fake_info, stream_info_calls
+
+
+class _FakeOutlet:
+    """Record samples sent to an LSL outlet."""
+
+    def __init__(self) -> None:
+        self.samples: list[tuple[list[str], float]] = []
+
+    def push_sample(self, sample: list[str], timestamp: float) -> None:
+        """Store one sample and its LSL timestamp."""
+        self.samples.append((sample, timestamp))
 
 
 def _build_fake_keyboard(
@@ -92,19 +108,23 @@ def _build_fake_keyboard(
 def test_keylog_script_calls_main() -> None:
     """Expose the publisher through the installed ``keylog-lsl`` command."""
     scripts = entry_points(group="console_scripts", name="keylog-lsl")
+    script = next(iter(scripts))
 
     assert len(scripts) == 1
-    assert next(iter(scripts)).value == "keylog_lsl.key_lsl:main"
+    assert script.value == "keylog_lsl.key_lsl:main"
 
 
 def test_get_key_string() -> None:
     """Normalize character, named, and fallback key objects."""
     character_key = SimpleNamespace(char="a")
     named_key = SimpleNamespace(char=None, name="space")
+    character_result = utils.get_key_string(character_key)
+    named_result = utils.get_key_string(named_key)
+    fallback_result = utils.get_key_string(42)
 
-    assert utils.get_key_string(character_key) == "a"
-    assert utils.get_key_string(named_key) == "space"
-    assert utils.get_key_string(42) == "42"
+    assert character_result == "a"
+    assert named_result == "space"
+    assert fallback_result == "42"
 
 
 def test_make_marker(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -118,7 +138,7 @@ def test_make_marker(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_build_stream_info(monkeypatch: pytest.MonkeyPatch) -> None:
     """Build stream metadata with the expected channel and payload fields."""
-    fake_info, stream_info_factory = _patch_stream_info_factory(monkeypatch)
+    fake_info, stream_info_calls = _patch_stream_info_factory(monkeypatch)
 
     info = utils.build_stream_info()
     desc = fake_info.desc()
@@ -127,14 +147,16 @@ def test_build_stream_info(monkeypatch: pytest.MonkeyPatch) -> None:
     payload = desc.child_nodes["payload"][0]
 
     assert info is fake_info
-    stream_info_factory.assert_called_once_with(
-        name="KeyboardEvents",
-        type="Markers",
-        channel_count=1,
-        nominal_srate=0,
-        channel_format="string",
-        source_id="python_keyboard_stream_01",
-    )
+    assert stream_info_calls == [
+        {
+            "name": "KeyboardEvents",
+            "type": "Markers",
+            "channel_count": 1,
+            "nominal_srate": 0,
+            "channel_format": "string",
+            "source_id": "python_keyboard_stream_01",
+        }
+    ]
     assert ("manufacturer", "pynput") in desc.child_values
     assert channel.child_values == [("label", "KeyboardEvent"), ("type", "Marker")]
     assert payload.child_values == [
@@ -143,8 +165,8 @@ def test_build_stream_info(monkeypatch: pytest.MonkeyPatch) -> None:
         ("event_values", "press,release"),
         (
             "time_unix",
-            "Wall-clock Unix epoch seconds at the event, for post-hoc alignment "
-            "with non-LSL data sources.",
+            "Wall-clock Unix epoch time in UTC seconds at the event, for "
+            "post-hoc alignment with non-LSL data sources.",
         ),
     ]
 
@@ -163,23 +185,33 @@ def test_main_publishes_press_and_release(
     pynput.keyboard = fake_keyboard  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "pynput", pynput)
 
-    stream_info = MagicMock()
-    build_stream_info = MagicMock(return_value=stream_info)
-    outlet = MagicMock()
-    outlet_factory = MagicMock(return_value=outlet)
+    stream_info = object()
+    build_stream_info_calls: list[None] = []
+    outlet_factory_calls: list[object] = []
+    outlet = _FakeOutlet()
+
+    def build_stream_info() -> object:
+        """Record the factory call and return a controlled stream."""
+        build_stream_info_calls.append(None)
+        return stream_info
+
+    def outlet_factory(info: object) -> _FakeOutlet:
+        """Record the stream metadata and return a controlled outlet."""
+        outlet_factory_calls.append(info)
+        return outlet
+
     monkeypatch.setattr(utils, "build_stream_info", build_stream_info)
     monkeypatch.setattr(key_lsl, "StreamOutlet", outlet_factory)
-    monkeypatch.setattr(utils, "local_clock", MagicMock(side_effect=[1.0, 2.0, 3.0]))
+    monkeypatch.setattr(utils, "local_clock", iter([1.0, 2.0, 3.0]).__next__)
     monkeypatch.setattr(utils.time, "time", lambda: 100.0)
 
     key_lsl.main()
 
     assert press_results == [None, False]
-    build_stream_info.assert_called_once_with()
-    outlet_factory.assert_called_once_with(stream_info)
+    assert build_stream_info_calls == [None]
+    assert outlet_factory_calls == [stream_info]
     assert [
-        (json.loads(push.args[0][0]), push.args[1])
-        for push in outlet.push_sample.call_args_list
+        (json.loads(sample[0]), timestamp) for sample, timestamp in outlet.samples
     ] == [
         ({"event": "press", "key": "a", "time_unix": 100.0}, 1.0),
         ({"event": "release", "key": "a", "time_unix": 100.0}, 2.0),
