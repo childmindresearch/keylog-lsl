@@ -1,0 +1,57 @@
+[project]
+name = "keylog-lsl"
+version = "0.1.0"
+description = "Keyboard event logging over Lab Streaming Layer."
+authors = [
+  {name = "CMI MoBI", email = "mobi@childmind.org"}
+]
+license = "LGPL-2.1-only"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "pylsl>=1.17.6",
+  "pynput>=1.8.1"
+]
+
+[project.scripts]
+keylog-lsl = "keylog_lsl.key_lsl:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1.1",
+  "mypy>=2.1.0",
+  "pre-commit>=4.6.0",
+  "pytest-cov>=7.1.0",
+  "ruff>=0.15.20",
+  "deptry>=0.25.1"
+]
+docs = ["pdoc>=16.0.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+src = ["src"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ANN", "D", "E", "F", "I"]
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = []
+
+[build-system]
+requires = ["uv_build>=0.11.26,<0.12.0"]
+build-backend = "uv_build"

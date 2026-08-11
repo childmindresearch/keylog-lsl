@@ -1,30 +1,43 @@
 # keylog-lsl
 
-Python tool for keyboard event logging over LSL and basic text reconstruction.
+[![Build](https://github.com/childmindresearch/keylog-lsl/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/childmindresearch/keylog-lsl/actions/workflows/test.yaml?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/childmindresearch/keylog-lsl/branch/main/graph/badge.svg)](https://codecov.io/gh/childmindresearch/keylog-lsl)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)
+[![LGPL-2.1 License](https://img.shields.io/badge/license-LGPL--2.1-blue.svg)](https://github.com/childmindresearch/keylog-lsl/blob/main/LICENSE)
+[![pages](https://img.shields.io/badge/api-docs-blue)](https://childmindresearch.github.io/keylog-lsl)
 
-This repository has two scripts:
+A Python tool for publishing global keyboard events over Lab Streaming Layer
+(LSL).
 
-- `key_lsl.py`: records global keyboard events and publishes them to an LSL
-	marker stream named `KeyboardEvents`.
-- `example_key_analysis.py`: example analysis code for reconstructing typed
-	text from recorded markers.
+## Features
 
-These script is intended as a module but it also works as a standalone CLI.
+- Publishes key press and release events to a `KeyboardEvents` LSL stream.
+- Stores normalized key names and wall-clock timestamps in JSON markers.
 
-## Requirements
+## Installation
 
-- Python 3.10+
-- `uv`
+This project requires Python 3.12 or newer and
+[uv](https://docs.astral.sh/uv/).
+
+```sh
+git clone https://github.com/childmindresearch/keylog-lsl.git
+cd keylog-lsl
+uv sync
+```
+
+On macOS, grant the terminal or Python process Accessibility permission when
+prompted so `pynput` can monitor global keyboard events.
 
 ## Quick start
 
-Run the keyboard stream publisher:
+Start the keyboard stream publisher:
 
-```bash
-uv run key_lsl.py
+```sh
+uv run keylog-lsl
 ```
 
-This opens an LSL stream named `KeyboardEvents` with JSON markers:
+This opens an LSL stream named `KeyboardEvents` with JSON markers such as:
 
 ```json
 {"event":"press","key":"a","time_unix":1760000000.1234}
@@ -32,60 +45,17 @@ This opens an LSL stream named `KeyboardEvents` with JSON markers:
 
 Press `ESC` to stop.
 
-## Analyze a marker CSV
+## Development
 
-If you already have a marker CSV (columns: `timestamp`, `marker`):
-
-```bash
-uv run example_key_analysis.py path/to/keyboard_markers.csv
+```sh
+uv sync --all-groups
+uv run pre-commit install
+uv run pytest
 ```
 
-## Analyze an XDF file
+See [CONTRIBUTING.md](CONTRIBUTING.md) for pull request requirements.
 
-If your recording is in XDF:
+## Links
 
-```bash
-uv run example_key_analysis.py path/to/session.xdf
-```
-
-Optional: choose where exported CSVs are written:
-
-```bash
-uv run example_key_analysis.py path/to/session.xdf --xdf-output-dir path/to/out
-```
-
-## Useful analysis flags
-
-```bash
-# show one annotated line per event
-uv run example_key_analysis.py path/to/session.xdf --show-events
-
-# collapse character auto-repeat (held-key repeats)
-uv run example_key_analysis.py path/to/session.xdf --collapse-repeats
-```
-
-## What the analysis prints
-
-Typical output structure:
-
-```text
---- Reconstructed input ---
-first line
-second line
-
---- Stats ---
-events: ...
-	presses: ...
-	releases: ...
-chars inserted: ...
-backspaces applied: ...
-auto-repeat presses: ...
-session duration: ... s
-```
-
-Notes:
-
-- Unmodeled keys are keys with no defined effect on the reconstructed text
-  (for example arrow keys, delete, home/end, function keys). They're skipped
-  rather than guessed at, so if they show up in the stats, the reconstructed
-  text may not exactly match what was actually typed.
+- [API documentation](https://childmindresearch.github.io/keylog-lsl)
+- [Lab Streaming Layer](https://labstreaminglayer.org/)
