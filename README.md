@@ -14,6 +14,7 @@ A Python tool for publishing global keyboard events over Lab Streaming Layer
 
 - Publishes key press and release events to a `KeyboardEvents` LSL stream.
 - Stores normalized key names and wall-clock timestamps in JSON markers.
+- Provides a small control window with one Start/Stop button.
 
 ## Installation
 
@@ -29,6 +30,11 @@ uv sync
 On macOS, grant the terminal or Python process Accessibility permission when
 prompted so `pynput` can monitor global keyboard events.
 
+The control window requires Tkinter and a desktop display. If your Python
+installation does not include Tkinter, install Tk support for that interpreter
+(for example, `python-tk@3.13` for Homebrew Python 3.13 or `python3-tk` on
+Debian/Ubuntu).
+
 ## Quick start
 
 Start the keyboard stream publisher:
@@ -37,13 +43,20 @@ Start the keyboard stream publisher:
 uv run keylog-lsl
 ```
 
-This opens an LSL stream named `KeyboardEvents` with JSON markers such as:
+This opens a small control window, initially stopped. Click **Start** to publish
+keyboard events, then click the same button, now labeled **Stop**, to stop
+recording. Click **Start** again to resume on the same `KeyboardEvents` LSL
+stream, with JSON markers such as:
 
 ```json
 {"event":"press","key":"a","time_unix":1760000000.1234}
 ```
 
-Press `ESC` to stop.
+`ESC` is recorded like any other key; it does not stop recording or exit.
+Close the control window to stop any active recording and exit.
+
+The keyboard hook is initialized before the window opens for macOS compatibility.
+While stopped, keyboard events are ignored and no markers are sent.
 
 ## Development
 
