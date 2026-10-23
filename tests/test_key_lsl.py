@@ -113,6 +113,17 @@ class _FakeListener:
         return self.running
 
 
+class _FakeLabel:
+    """Record the window's descriptive label without Tk."""
+
+    def __init__(self, master: "_FakeWindow", *, text: str) -> None:
+        self.text = text
+        master.label = self
+
+    def pack(self, **kwargs: object) -> None:
+        """Accept layout options without creating a real widget."""
+
+
 class _FakeButton:
     """Expose the control button's label and command without Tk."""
 
@@ -143,6 +154,8 @@ class _FakeWindow:
 
     def __init__(self) -> None:
         self.button: _FakeButton | None = None
+        self.label: _FakeLabel | None = None
+        self.minimum_size: tuple[int, int] | None = None
         self.close_callback: Callable[[], None] | None = None
         self.on_mainloop: Callable[[], None] = self.close
         self.scheduled: list[Callable[[], None]] = []
@@ -155,6 +168,10 @@ class _FakeWindow:
 
     def resizable(self, width: bool, height: bool) -> None:
         """Accept window sizing options."""
+
+    def minsize(self, width: int, height: int) -> None:
+        """Record the minimum window dimensions."""
+        self.minimum_size = (width, height)
 
     def protocol(self, name: str, callback: Callable[[], None]) -> None:
         """Store the window-close handler."""
@@ -215,13 +232,28 @@ def controls(
     pynput.keyboard = SimpleNamespace(Listener=listener_factory)  # type: ignore[attr-defined]
     tkinter = ModuleType("tkinter")
     tkinter.Tk = window_factory  # type: ignore[attr-defined]
-    tkinter.ttk = SimpleNamespace(Button=_FakeButton)  # type: ignore[attr-defined]
+    tkinter.ttk = SimpleNamespace(  # type: ignore[attr-defined]
+        Button=_FakeButton, Label=_FakeLabel
+    )
     tkinter.messagebox = SimpleNamespace(showerror=showerror)  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "pynput", pynput)
     monkeypatch.setitem(sys.modules, "tkinter", tkinter)
     monkeypatch.setattr(utils, "build_stream_info", lambda: object())
     monkeypatch.setattr(key_lsl, "StreamOutlet", lambda _: outlet)
     return window, listeners, outlet
+
+
+def test_main_window_label_and_size(
+    controls: tuple[_FakeWindow, list[_FakeListener], _FakeOutlet],
+) -> None:
+    """Show a descriptive label in a wider control window."""
+    window, _, _ = controls
+
+    key_lsl.main()
+
+    assert window.label is not None
+    assert window.label.text == "Keyboard Logging & LSL Streaming"
+    assert window.minimum_size == (400, 140)
 
 
 def test_keylog_script_calls_main() -> None:

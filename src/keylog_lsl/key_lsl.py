@@ -102,7 +102,10 @@ def main() -> None:
                     print("Listening for keystrokes... (Click Stop to pause)")
 
             window.title("LSL Keyboard Event Streamer")
+            window.minsize(400, 140)
             window.resizable(False, False)
+            label = ttk.Label(window, text="Keyboard Logging -> LSL")
+            label.pack(padx=32, pady=(24, 0))
             button = ttk.Button(window, text="Start", command=toggle_stream, width=16)
             button.pack(padx=32, pady=24)
             window.protocol("WM_DELETE_WINDOW", window.quit)
