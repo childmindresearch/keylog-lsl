@@ -252,7 +252,7 @@ def test_main_window_label_and_size(
     key_lsl.main()
 
     assert window.label is not None
-    assert window.label.text == "Keyboard Logging & LSL Streaming"
+    assert window.label.text == "Keyboard Logging -> LSL"
     assert window.minimum_size == (400, 140)
 
 
