@@ -588,18 +588,18 @@ wheels = [
 
 [[package]]
 name = "pylsl"
-version = "1.18.2"
+version = "1.18.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a9/22/f7f331841138351653388797c8b786f7d50dbfb96ab7d5c3faf8b79ea1b6/pylsl-1.18.2.tar.gz", hash = "sha256:e0f591bc9722d976c3cd3721c958ef3d9fc2b2bbe32e9218609a6f6070349a88", size = 42759, upload-time = "2026-04-22T04:21:32.707Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/eb/b1/bb0c68594e055849ad6cec0573c0401c405809dc51c2ca4dc12b25c7160d/pylsl-1.18.6.tar.gz", hash = "sha256:f6eed95cc8eb75fe6bf2bcc1f5c1d91672b0cf56c528e93aca07569ffffe2be0", size = 48353, upload-time = "2026-10-14T21:40:06.142Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/79/27/4daf3a230344ce9bd25b9a68cd674819deaaedb994a141d61a2d17ca6823/pylsl-1.18.2-py2.py3-none-any.whl", hash = "sha256:0758d45b13aa97beb806884ec607648fe6568505b04c3ce152bfea214a4f06c2", size = 42949, upload-time = "2026-04-22T04:21:33.431Z" },
-    { url = "https://files.pythonhosted.org/packages/6e/7f/9f19c023dfb770ffe23031e05251e64fcf3f3bfc4f51d16d352b8e58f5ec/pylsl-1.18.2-py2.py3-none-macosx_11_0_universal2.whl", hash = "sha256:dd459aaa36af808cca4e4046ae926b42886fdd9672b219bfd4dd154010ca1c8b", size = 662393, upload-time = "2026-04-22T04:21:31.549Z" },
-    { url = "https://files.pythonhosted.org/packages/64/08/c2ae65d3fe8d1cfaa4be05617a6f6af71342ba0dc1750363b929098065b7/pylsl-1.18.2-py2.py3-none-manylinux_2_35_x86_64.whl", hash = "sha256:f0331fed141cf19be65017e6529edff79b8505b4781e9e1838c95de5d072ade4", size = 1043264, upload-time = "2026-04-22T04:21:30.201Z" },
-    { url = "https://files.pythonhosted.org/packages/2c/b1/e599a7327376e29847dd00b33f127b9238e76d9aedd27eae6eb9ff77a190/pylsl-1.18.2-py2.py3-none-win32.whl", hash = "sha256:2f9f50aa16510600066e43628a1b66ac6b6a32b321de3000824f9c60e26cfbfa", size = 272611, upload-time = "2026-04-22T04:21:28.666Z" },
-    { url = "https://files.pythonhosted.org/packages/8a/a8/8ccb88b3cd65140e57966472038baa0cebb56bde5e86ad51852faed99cad/pylsl-1.18.2-py2.py3-none-win_amd64.whl", hash = "sha256:3ea2693417c7d79766cebf967250fde78aa1a3ad2b198e40246d36f549dbfde1", size = 307506, upload-time = "2026-04-22T04:21:35.177Z" },
+    { url = "https://files.pythonhosted.org/packages/79/13/21cc2b6ba0097db3f47b8e9561e791f2d8767e3de147ca763c76ba020a89/pylsl-1.18.6-py3-none-any.whl", hash = "sha256:dfc5046ed1cf2303814a0fdd7cd4c85c6db64409cf7fb9ccb558ebfb9e19a716", size = 50199, upload-time = "2026-10-14T21:39:59.794Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/8c/a321631d26c9933ced7c51fd455e161481c3dd4e2d2c17820164104fa284/pylsl-1.18.6-py3-none-macosx_11_0_universal2.whl", hash = "sha256:0e98ead8a6a24db608074c986f720cd9c0727e9a798f0eb9369b90ab9367fcf0", size = 737284, upload-time = "2026-10-14T21:40:01.277Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/a9/225d65b20dc80bad944d271354345e012d6666c72d5318b78e591a389997/pylsl-1.18.6-py3-none-manylinux_2_35_x86_64.whl", hash = "sha256:d184abba5318c85a456ff1ca88a1960e194ab7c7ac2f31b6d0a06726e36b91e1", size = 1302904, upload-time = "2026-10-14T21:40:02.628Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/73/243cc433ac77607dea80b2df0a3eab9b424f779c633ae14bcc7a86f32dc0/pylsl-1.18.6-py3-none-win32.whl", hash = "sha256:2ab84a0591f2e35baff2305b51cf438db9078fc6ff6ac1fa0a4bac69a6d9c470", size = 301785, upload-time = "2026-10-14T21:40:03.781Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/96/bf1454712d30c7ad69975fb72e18bab8666adb2e3baf1c4cccec549aff2e/pylsl-1.18.6-py3-none-win_amd64.whl", hash = "sha256:2ea0d831cc38653a2fc69a6242ffeb2315b82ab31719c255330afe3d6b7421dc", size = 340339, upload-time = "2026-10-14T21:40:05.049Z" },
 ]
 
 [[package]]
